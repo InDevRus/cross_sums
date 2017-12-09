@@ -40,13 +40,6 @@ class SolverTests(unittest.TestCase):
         return [[number, quantity]
                 for number in range(1, 46) for quantity in range(1, 10)]
 
-    @assert_equality(solver.initialize_cells)
-    def test_initialize(self):
-        return [({(0, 0): set(), (0, 1): {1, 2}, (1, 0): (None, 3),
-                  (1, 1): set()},
-                 {(0, 0): {*range(1, 10)}, (0, 1): {1, 2},
-                  (1, 0): (None, 3), (1, 1): {*range(1, 10)}})]
-
     @assert_equality(solver.get_block)
     def test_get_block(self):
         string = StringIO(':   23: 30:   :     :     27: 12: 16:\n'
@@ -75,7 +68,7 @@ class SolverTests(unittest.TestCase):
                           ':   11: 10:16 _     _     _   _   _\n'
                           ':21 _   _     _     _     :5  _   _\n'
                           ':6  _   _     _     :     :3  _   _')
-        puzzle = solver.initialize_cells(make_puzzle(string))
+        puzzle = make_puzzle(string)
         [solver.fill_block(puzzle, cell, False) for cell in ((4, 7), (0, 2))]
         [solver.fill_block(puzzle, cell, True) for cell in ((5, 2),)]
         return [*((puzzle.get((number, 2)),
@@ -95,7 +88,7 @@ class SolverTests(unittest.TestCase):
                           ':   11: 10:16 _     _     _   _   _\n'
                           ':21 _   _     _     _     :5  _   _\n'
                           ':6  _   _     _     :     :3  _   _')
-        puzzle = solver.initialize_cells(make_puzzle(string))
+        puzzle = make_puzzle(string)
         return [(puzzle,
                  {(0, 0): None, (0, 1): (23, None), (0, 2): (30, None),
                   (0, 3): None, (0, 4): None, (0, 5): (27, None),
@@ -138,7 +131,7 @@ class SolverTests(unittest.TestCase):
                 (puzzle, (6, 4), {(6, 1), (6, 2), (6, 3), (5, 4)}),
                 (puzzle, (1, 5), {(1, 6), (2, 5), (3, 5), (4, 5), (5, 5)})]
 
-    @assert_equality(solver.elementary_puzzle_reduce)
+    @assert_equality(solver.reduce_puzzle)
     def test_reduce_puzzle(self):
         string = StringIO(':   23: 30:   :     :     27: 12: 16:\n'
                           ':16 _   _     :     17:24 _   _   _\n'
@@ -181,14 +174,13 @@ class SolverTests(unittest.TestCase):
         string = StringIO(':   17:\n'
                           ':8   _  \n'
                           ':8 _  \n')
-        puzzle = solver.initialize_cells(make_puzzle(string))
+        puzzle = make_puzzle(string)
         puzzle = solver.fill_free_cells(puzzle)
         return [[puzzle]]
 
     @assert_equality(lambda subject:
                      solver.exclude_impossible_numbers(
-                         solver.elementary_puzzle_reduce(
-                             make_puzzle(subject))))
+                         solver.reduce_puzzle(make_puzzle(subject))))
     @wrap_string_in_io()
     def test_exclude_impossible_numbers(self):
         return [[':   :   :     15: 19: : \n'

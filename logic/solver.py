@@ -22,14 +22,6 @@ def find_unique_combinations(summary: int, parts_quantity: int,
     return set(yield_unique_combinations(summary, parts_quantity, restricted))
 
 
-def initialize_cells(puzzle: dict):
-    free_cells = (iter(puzzle)
-                  | where(lambda cell: puzzle.get(cell) == set()))
-    for free_cell in free_cells:
-        puzzle[free_cell] = {*range(1, 10)}
-    return puzzle
-
-
 def get_block(puzzle: dict, hint: tuple, horizontal: bool) -> (int, list):
     hint_sum = puzzle.get(hint)[horizontal]
     current = [*iter(hint)]
@@ -137,13 +129,6 @@ def reduce_puzzle(puzzle: dict) -> dict:
     return puzzle
 
 
-def elementary_puzzle_reduce(puzzle: dict):
-    function_sequence = (initialize_cells, reduce_puzzle)
-    for func in function_sequence:
-        func(puzzle)
-    return puzzle
-
-
 def exclude_impossible_numbers(puzzle: dict) -> dict:
     was_reduce = True
     while was_reduce:
@@ -155,7 +140,7 @@ def exclude_impossible_numbers(puzzle: dict) -> dict:
                 new_puzzle = puzzle.copy()
                 new_puzzle[free_cell] = {possible_number}
                 try:
-                    elementary_puzzle_reduce(new_puzzle)
+                    reduce_puzzle(new_puzzle)
                 except RuntimeError:
                     reduced_cell = puzzle.get(free_cell) - {possible_number}
                     if reduced_cell == set():
@@ -170,7 +155,7 @@ def exclude_impossible_numbers(puzzle: dict) -> dict:
 
 
 def solve_puzzle(puzzle: dict) -> dict:
-    function_sequence = (elementary_puzzle_reduce, exclude_impossible_numbers)
+    function_sequence = (reduce_puzzle, exclude_impossible_numbers)
     for func in function_sequence:
         puzzle = func(puzzle)
         if (iter(puzzle.values())

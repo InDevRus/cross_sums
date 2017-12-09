@@ -1,25 +1,12 @@
 from pipe import *
-
-
-def get_symbols_from_file(file):
-    """
-    Reads files and returns every symbol from them.
-
-    Args:
-        file (file): File object.
-
-    Yields (str): every symbol from file.
-    """
-    symbol = file.read(1)
-    while symbol != '':
-        yield symbol
-        symbol = file.read(1)
+from re import finditer
+from logic.enumerable import Enumerable
 
 
 def parse_token(token: str) -> object:
     message = 'Invalid token "{0}" in {1} line, {2} token.'
     if token == '_':
-        return set()
+        return {*range(1, 10)}
     elif token == ':':
         return None
     elif token.isdecimal():
@@ -51,26 +38,29 @@ def make_puzzle(file) -> dict:
 
     Returns (dict): Puzzle.
     """
-    puzzle = {}
-    line_number = token_number = 0
-    token = ''
 
-    for symbol in iter((get_symbols_from_file(file), ' ')) | chain:
-        if symbol in (' ', '\n', '\r'):
-            if iter(token) | count > 0:
-                try:
-                    cell = parse_token(token)
-                except SyntaxError as exception:
-                    raise SyntaxError(
-                        str(exception)
-                        .format(token, line_number, token_number))
-                puzzle[line_number, token_number] = cell
+    def yield_tokens():
+        nonlocal line_number, token_number
+        line = file.readline()
+        while line != '':
+            tokens = (Enumerable(finditer('\S+', line))
+                .select(lambda match_object: match_object.group(0)))
+            for part in tokens:
+                yield part
                 token_number += 1
-            if symbol == '\n':
-                line_number += 1
-                token_number = 0
-            token = ''
-        else:
-            token += symbol
+            line = file.readline()
+            line_number += 1
+            token_number = 0
+
+    line_number = token_number = 0
+    puzzle = {}
+
+    for token in yield_tokens():
+        try:
+            cell = parse_token(token)
+            puzzle[line_number, token_number] = cell
+        except SyntaxError as exception:
+            raise SyntaxError(
+                str(exception).format(token, line_number, token_number))
 
     return puzzle
