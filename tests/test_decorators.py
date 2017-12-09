@@ -3,16 +3,23 @@ from pipe import *
 
 
 def assert_equality(func, iterable: bool = False, out_type=tuple,
-                    assert_difference: bool = False):
+                    assert_difference: bool = False,
+                    orderless: bool = False):
     def decorator(test_method):
         def wrapped(self):
             self.maxDiff = None
             for args in test_method(self):
                 result = func(*args[:-1])
                 result = out_type(result) if iterable else result
-                comparator = (self.assertEqual if not assert_difference
-                              else self.assertNotEqual)
-                comparator(result, args[-1])
+                if orderless:
+                    for element in result:
+                        self.assertIn(element, args[-1])
+                    for element in args[-1]:
+                        self.assertIn(element, result)
+                else:
+                    comparator = (self.assertEqual if not assert_difference
+                    else self.assertNotEqual)
+                    comparator(result, args[-1])
         return wrapped
     return decorator
 

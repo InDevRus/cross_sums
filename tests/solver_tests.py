@@ -327,7 +327,7 @@ class SolverTests(unittest.TestCase):
 
     @assert_equality(lambda subject: solver.yield_all_possible_solutions
                      (solver.solve_puzzle(make_puzzle(subject))),
-                     iterable=True)
+                     iterable=True, orderless=True)
     @wrap_string_in_io()
     def test_multiple_solutions(self):
         return [[': 5: 4:\n:4 _ _\n:5 _ _',

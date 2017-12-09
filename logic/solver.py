@@ -120,7 +120,8 @@ def reduce_puzzle(puzzle: dict) -> dict:
         was_reduce = False
         puzzle = fill_free_cells(puzzle)
         solved_cells = (iter(puzzle)
-                        | where(lambda cell: is_cell_solved(cell)))
+                        | where(lambda cell: is_cell_solved(cell))
+                        | as_tuple)
         for solved_cell in solved_cells:
             was_reduce = True
             new_value = iter(puzzle.get(solved_cell)) | first
@@ -186,7 +187,7 @@ def is_puzzle_solved(puzzle: dict) -> bool:
             | count) == 0
 
 
-def yield_all_possible_solutions(puzzle: dict) -> dict:
+def yield_all_possible_solutions(puzzle: dict):
     first_unfilled_cell = (iter(puzzle)
                            | where(lambda cell:
                                    isinstance(puzzle.get(cell), set))
@@ -196,7 +197,7 @@ def yield_all_possible_solutions(puzzle: dict) -> dict:
         return
     for possible_number in puzzle.get(first_unfilled_cell):
         new_puzzle = puzzle.copy()
-        new_puzzle[first_unfilled_cell] = possible_number
+        new_puzzle[first_unfilled_cell] = {possible_number}
         try:
             yield from yield_all_possible_solutions(solve_puzzle(new_puzzle))
         except RuntimeError:

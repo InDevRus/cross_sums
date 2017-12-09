@@ -28,6 +28,7 @@ def main():
             file = stdin
 
         puzzle = make_puzzle(file)
+        print(puzzle)
         check_puzzle(puzzle)
         solve_puzzle(puzzle)
         solved = is_puzzle_solved(puzzle)
