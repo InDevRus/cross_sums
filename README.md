@@ -5,13 +5,15 @@ Project can solve cross sums puzzle (also known as "Kakuro").
 ### How to use it?
 
 ```
-py cross_sums [-h] [-f FILE] [-a | -d]
+py cross_sums [-h] [-f FILE] [-l n]
+
+Cross sums (also known as "Kakuro") puzzle solver.
 
 optional arguments:
   -h, --help            show this help message and exit
   -f FILE, --file FILE  file with cross sums puzzle
-  -a, --all             show all possible solutions if there was more than one
-  -d, --filled          fill unsolved cells
+  -l n, --limit n       limit of possible solutions (integer or asterisk)
+
 ```
 
 Solve puzzle written in file.
@@ -26,19 +28,16 @@ Solve puzzle from STDIN.
 py cross_sums < "file.txt"
 ```
 
-If puzzle has multiple solutions,
-* You can get puzzle with most cell solved 
-  * Without filling unsolved cells
-  ```
-  py cross_sums -f "file.txt"
-  ``` 
-  * With filling unsolved cells
-  ```
-  py cross_sums -df "file.txt"
-  ```
-* You can get all possible solutions
+Get first 5 solutions.
+
 ```
-py cross_sums -af "file.txt"
+py cross_sums -l 5 -f "file.txt"
+```
+
+Get all solutions.
+
+```
+py cross_sums -l * -f "file.txt"
 ```
 
 ### Example of input

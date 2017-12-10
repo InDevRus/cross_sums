@@ -1,6 +1,5 @@
 from functools import lru_cache
-from pipe import *
-from logic.general import first_or_default
+from utilities.iterable import Iterable
 
 
 @lru_cache(maxsize=(sum(range(1, 10)) * 9 * 2 ** 9))
@@ -30,14 +29,14 @@ def get_block(puzzle: dict, hint: tuple, horizontal: bool) -> (int, list):
 
     while True:
         current[horizontal] += 1
-        current_value = puzzle.get(iter(current) | as_tuple)
+        current_value = puzzle.get(Iterable(current).to_tuple())
         if current_value is None or isinstance(current_value, tuple):
             break
         if isinstance(current_value, int):
             hint_sum -= current_value
             restricted.append(current_value)
         if isinstance(current_value, set):
-            block.append(iter(current) | as_tuple)
+            block.append(Iterable(current).to_tuple())
 
     return hint_sum, block, frozenset(restricted)
 
@@ -53,7 +52,7 @@ def fill_block(puzzle: dict, hint: tuple, horizontal: bool):
                            .format('horizontal' if horizontal else 'vertical',
                                    *hint))
 
-    possible_numbers = set(iter(combinations) | chain)
+    possible_numbers = Iterable(combinations).chain().to_set()
     for cell in block:
         puzzle[cell] = puzzle.get(cell).intersection(possible_numbers)
         if puzzle.get(cell) == set():
@@ -63,8 +62,8 @@ def fill_block(puzzle: dict, hint: tuple, horizontal: bool):
 
 
 def fill_free_cells(puzzle: dict):
-    hints = (iter(puzzle)
-             | where(lambda cell: isinstance(puzzle.get(cell), tuple)))
+    hints = (Iterable(puzzle)
+        .filter(lambda cell: isinstance(puzzle.get(cell), tuple)))
     for hint in hints:
         value = puzzle.get(hint)
         if value[0] is not None:
@@ -78,17 +77,14 @@ def fill_free_cells(puzzle: dict):
 def get_neighbor_cells(puzzle: dict, cell: tuple):
     def update_current():
         nonlocal current
-        offset = (iter(direction)
-                  | select(lambda number: number * multiplier)
-                  | as_tuple)
-        current = (iter(offset)
-                   | izip(cell)
-                   | select(lambda iterable: iter(iterable) | add)
-                   | as_tuple)
+        offset = (Iterable(direction)
+            .to_tuple(lambda number: number * multiplier))
+        current = (Iterable(offset)
+            .zip(cell)
+            .to_tuple(lambda iterable: Iterable(iterable).sum()))
 
-    directions = (iter((-1, 1))
-                  | select(lambda number: ((0, number), (number, 0)))
-                  | chain)
+    directions = (Iterable((-1, 1))
+        .chain(lambda number: ((0, number), (number, 0))))
     for direction in directions:
         multiplier = 1
         current = None
@@ -105,18 +101,18 @@ def get_neighbor_cells(puzzle: dict, cell: tuple):
 def reduce_puzzle(puzzle: dict) -> dict:
     def is_cell_solved(cell: tuple):
         value = puzzle.get(cell)
-        return isinstance(value, set) and (iter(value) | count) == 1
+        return isinstance(value, set) and (Iterable(value).count()) == 1
 
     was_reduce = True
     while was_reduce:
         was_reduce = False
         puzzle = fill_free_cells(puzzle)
-        solved_cells = (iter(puzzle)
-                        | where(lambda cell: is_cell_solved(cell))
-                        | as_tuple)
+        solved_cells = (Iterable(puzzle)
+            .filter(lambda cell: is_cell_solved(cell))
+            .to_tuple())
         for solved_cell in solved_cells:
             was_reduce = True
-            new_value = iter(puzzle.get(solved_cell)) | first
+            new_value = Iterable(puzzle.get(solved_cell)).first()
             puzzle[solved_cell] = new_value
             for neighbor in get_neighbor_cells(puzzle, solved_cell):
                 reduced_cell = puzzle.get(neighbor) - {new_value}
@@ -133,8 +129,8 @@ def exclude_impossible_numbers(puzzle: dict) -> dict:
     was_reduce = True
     while was_reduce:
         was_reduce = False
-        for free_cell in (iter(puzzle)
-                          | where(lambda cell: isinstance(puzzle.get(cell),
+        for free_cell in (Iterable(puzzle)
+                .filter(lambda cell: isinstance(puzzle.get(cell),
                                                           set))):
             for possible_number in puzzle.get(free_cell):
                 new_puzzle = puzzle.copy()
@@ -158,32 +154,32 @@ def solve_puzzle(puzzle: dict) -> dict:
     function_sequence = (reduce_puzzle, exclude_impossible_numbers)
     for func in function_sequence:
         puzzle = func(puzzle)
-        if (iter(puzzle.values())
-                | where(lambda value: not isinstance(value, set))
-                | count) == 0:
-            return puzzle
+        if is_puzzle_solved(puzzle):
+            yield puzzle
+            return
 
-    return puzzle
+    yield from yield_all_possible_solutions(puzzle)
 
 
 def is_puzzle_solved(puzzle: dict) -> bool:
-    return (iter(puzzle.values())
-            | where(lambda value: isinstance(value, set))
-            | count) == 0
+    return (Iterable(puzzle.values())
+        .count(lambda value: isinstance(value, set))) == 0
 
 
 def yield_all_possible_solutions(puzzle: dict):
-    first_unfilled_cell = (iter(puzzle)
-                           | where(lambda cell:
-                                   isinstance(puzzle.get(cell), set))
-                           | first_or_default)
-    if first_unfilled_cell is None:
+    first_unsolved_cell = (Iterable(puzzle)
+        .first_or_default(lambda cell:
+                          isinstance(puzzle.get(cell),
+                                     set)))
+    if first_unsolved_cell is None:
         yield puzzle
         return
-    for possible_number in puzzle.get(first_unfilled_cell):
+    for possible_number in puzzle.get(first_unsolved_cell):
         new_puzzle = puzzle.copy()
-        new_puzzle[first_unfilled_cell] = {possible_number}
+        new_puzzle[first_unsolved_cell] = {possible_number}
         try:
-            yield from yield_all_possible_solutions(solve_puzzle(new_puzzle))
+            reduce_puzzle(new_puzzle)
+            exclude_impossible_numbers(new_puzzle)
+            yield from yield_all_possible_solutions(new_puzzle)
         except RuntimeError:
             pass

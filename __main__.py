@@ -1,51 +1,48 @@
 import argparse
 from sys import stderr, stdin, exit
+
+from utilities.iterable import Iterable
 from logic.error_checker import check_puzzle
 from logic.puzzle_maker import make_puzzle
-from logic.solver import (solve_puzzle, is_puzzle_solved,
-                          yield_all_possible_solutions)
+from logic.solver import solve_puzzle
 from logic.converter import convert_puzzle
 
 
-def print_puzzle(puzzle: dict, filled: bool):
-    for string in convert_puzzle(puzzle, filled):
+def print_puzzle(puzzle: dict):
+    for string in convert_puzzle(puzzle):
         print(string)
-    print()
 
 
 def main():
     parser = argparse.ArgumentParser(
         description='Cross sums (also known as "Kakuro") puzzle solver.')
     parser.add_argument('-f', '--file', help='file with cross sums puzzle')
-    multiple_solutions_group = parser.add_mutually_exclusive_group()
-    multiple_solutions_group.add_argument('-a', '--all', action='store_true',
-                                          help='show all possible solutions '
-                                               'if there was more than one', )
-    multiple_solutions_group.add_argument('-d', '--filled',
-                                          action='store_true',
-                                          help='fill unsolved cells')
+    parser.add_argument('-l', '--limit', metavar='n',
+                        help='limit of possible solutions '
+                             '(integer or asterisk)', default='1')
     arguments = parser.parse_args()
 
     try:
+        limit = arguments.limit
+        if ((limit != '*' and not limit.isnumeric())
+                or limit.isnumeric() and int(limit) < 1):
+            raise SyntaxError('Limit value must be positive '
+                              'number or asterisk.')
         with (stdin if arguments.file is None
         else open(arguments.file, encoding='utf-8')) as file:
             puzzle = make_puzzle(file)
             check_puzzle(puzzle)
-            solve_puzzle(puzzle)
-            solved = is_puzzle_solved(puzzle)
-            if solved:
-                print_puzzle(puzzle, True)
-            elif arguments.all:
-                count = 0
-                for solution in yield_all_possible_solutions(puzzle):
-                    print_puzzle(solution, True)
-                    count += 1
-                print('Total {0} solutions.'.format(count))
-            else:
-                print('Puzzle has been partially solved.')
-                print('This is the best solution for it.')
-                print_puzzle(puzzle, arguments.filled)
-                exit(4)
+            solutions = enumerate(solve_puzzle(puzzle), start=1)
+            solutions = (Iterable(solutions).take(int(limit))
+            if limit != '*' else solutions)
+            for pair in solutions:
+                print('Solution #{0}'.format(pair[0]))
+                print_puzzle(pair[1])
+                print()
+
+    except SyntaxError as exception:
+        print(str(exception))
+        exit(2)
 
     except RuntimeError as exception:
         print('Puzzle is unsolvable. {0}'.format(str(exception)), file=stderr)

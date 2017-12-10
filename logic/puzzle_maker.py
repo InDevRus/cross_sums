@@ -1,6 +1,5 @@
-from pipe import *
 from re import finditer
-from logic.enumerable import Enumerable
+from utilities.iterable import Iterable
 
 
 def parse_token(token: str) -> object:
@@ -16,14 +15,13 @@ def parse_token(token: str) -> object:
         return value
     else:
         parts = token.split(':')
-        if (iter(parts) | count != 2
-            or (iter(parts)
-                | where(lambda string: not string.isdecimal() and string != '')
-                | count) != 0):
+        if (Iterable(parts).count() != 2
+                or (Iterable(parts)
+                        .filter(
+                    lambda string: not string.isdecimal() and string != '')
+                        .count()) != 0):
             raise SyntaxError(message)
-        return (iter(parts)
-                | select(lambda part: int(part) if part != '' else None)
-                | as_tuple)
+        return tuple(int(part) if part != '' else None for part in parts)
 
 
 def make_puzzle(file) -> dict:
@@ -43,8 +41,8 @@ def make_puzzle(file) -> dict:
         nonlocal line_number, token_number
         line = file.readline()
         while line != '':
-            tokens = (Enumerable(finditer('\S+', line))
-                .select(lambda match_object: match_object.group(0)))
+            tokens = (Iterable(finditer('\S+', line))
+                .map(lambda match_object: match_object.group(0)))
             for part in tokens:
                 yield part
                 token_number += 1

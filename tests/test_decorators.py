@@ -1,5 +1,5 @@
 from io import StringIO
-from pipe import *
+from utilities.iterable import Iterable
 
 
 def assert_equality(func, iterable: bool = False, out_type=tuple,
@@ -69,10 +69,9 @@ def wrap_string_in_io(position: int = 0, iterable: bool = False):
             data = test_method(self)
             for args in data:
                 if iterable:
-                    args[position] =\
-                        (args[position]
-                         | select(lambda string: StringIO(string))
-                         | as_list)
+                    args[position] = (Iterable(args[position])
+                        .to_list(lambda string:
+                                 StringIO(string)))
                 else:
                     args[position] = StringIO(args[position])
             return data

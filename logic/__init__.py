@@ -1,2 +1,2 @@
-__all__ = ['converter', 'enumerable', 'error_checker', 'general',
-           'puzzle_maker', 'solver']
+__all__ = ['converter', 'error_checker', 'puzzle_maker',
+           'solver']

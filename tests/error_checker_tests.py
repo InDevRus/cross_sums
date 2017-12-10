@@ -1,6 +1,6 @@
 import pathmagic
 import unittest
-from tests.test_decorators import *
+from test_decorators import *
 
 from logic import error_checker
 from logic.puzzle_maker import make_puzzle
@@ -11,7 +11,7 @@ class ErrorCheckerTests(unittest.TestCase):
                      error_checker.check_puzzle(make_puzzle(subject)))
     @wrap_string_in_io()
     @append_arguments(None, position=1)
-    def test_check_valid_puzzle_tests(self):
+    def test_check_valid_puzzle(self):
         return [[''], [':   23: 30:   :     :     27: 12: 16:\n'
                        ':16 _   _     :     17:24 _   _   _\n'
                        ':17 _   _     15:29 _     _   _   _\n'

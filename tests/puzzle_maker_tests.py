@@ -1,6 +1,6 @@
 import pathmagic
 import unittest
-from tests.test_decorators import *
+from test_decorators import *
 
 from logic import puzzle_maker
 

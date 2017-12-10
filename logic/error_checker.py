@@ -1,5 +1,4 @@
-from pipe import *
-from logic.general import first_or_default
+from utilities.iterable import Iterable
 
 
 def find_invalid_hints(puzzle: dict, vertical: bool):
@@ -8,12 +7,11 @@ def find_invalid_hints(puzzle: dict, vertical: bool):
                                 hint_cell[1] + (not vertical)))
         return isinstance(next_cell, int) or isinstance(next_cell, set)
 
-    return (iter(puzzle)
-            | where(lambda point:
-                    (isinstance(puzzle.get(point), tuple)
-                     and puzzle.get(point)[not vertical] is not None))
-            | where(lambda hint: not possible_after_hint(hint))
-            | first_or_default)
+    return (Iterable(puzzle)
+        .first_or_default(lambda point:
+                          (isinstance(puzzle.get(point), tuple)
+                           and puzzle.get(point)[not vertical] is not None)
+                          and not possible_after_hint(point)))
 
 
 def check(message):
@@ -23,7 +21,8 @@ def check(message):
             if result is not None:
                 raise (ValueError
                        (message.format
-                        (*result | select(lambda number: number + 1))))
+                        (*Iterable(result)
+                         .map(lambda number: number + 1))))
         return wrapped
     return decorator
 
@@ -47,23 +46,22 @@ def check_vertical_hints(puzzle: dict):
        'before free cell in {0} line, {1} token.')
 def find_impossible_free_cells(puzzle: dict):
     def possible_before_free_cell(free_cell: tuple) -> bool:
-        return (iter(((free_cell[0] - 1, free_cell[1]),
-                      (free_cell[0], free_cell[1] - 1)))
-                | select(lambda cell: puzzle.get(cell))
-                | where(lambda cell: isinstance(cell, tuple)
-                        or isinstance(cell, set) or isinstance(cell, int))
-                | count) == 2
+        return (Iterable(((free_cell[0] - 1, free_cell[1]),
+                          (free_cell[0], free_cell[1] - 1)))
+            .map(lambda cell: puzzle.get(cell))
+            .count(lambda cell: isinstance(cell, tuple)
+                                or isinstance(cell, set) or isinstance(cell,
+                                                                       int))) == 2
 
-    return (iter(puzzle)
-            | where(lambda cell:
-                    isinstance(puzzle.get(cell), set))
-            | where(lambda cell: not possible_before_free_cell(cell))
-            | first_or_default)
+    return (Iterable(puzzle)
+        .first_or_default(lambda cell: isinstance(puzzle.get(cell), set)
+                                       and not possible_before_free_cell(
+        cell)))
 
 
 def check_puzzle(puzzle: dict):
-    (iter((check_horizontal_hints,
-           check_vertical_hints,
-           find_impossible_free_cells))
-     | select(lambda func: func(puzzle))
-     | as_tuple)
+    (Iterable((check_horizontal_hints,
+               check_vertical_hints,
+               find_impossible_free_cells))
+        .map(lambda func: func(puzzle))
+        .to_tuple())
