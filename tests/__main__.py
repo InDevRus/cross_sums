@@ -1,7 +1,9 @@
 import pathmagic
-from tests.__init__ import __all__ as tests
 from unittest import main
 import argparse
+
+tests = ['solver_tests', 'converter_tests', 'error_checker_tests',
+         'puzzle_maker_tests']
 
 parser = argparse.ArgumentParser(
     description='Test running script')

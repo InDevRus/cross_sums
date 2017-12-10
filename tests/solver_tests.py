@@ -1,3 +1,4 @@
+import pathmagic
 from tests.test_decorators import *
 import unittest
 
