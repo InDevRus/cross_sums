@@ -7,11 +7,10 @@ def find_invalid_hints(puzzle: dict, vertical: bool):
                                 hint_cell[1] + (not vertical)))
         return isinstance(next_cell, int) or isinstance(next_cell, set)
 
-    return (Iterable(puzzle)
-        .first_or_default(lambda point:
-                          (isinstance(puzzle.get(point), tuple)
-                           and puzzle.get(point)[not vertical] is not None)
-                          and not possible_after_hint(point)))
+    return (Iterable(puzzle).first_or_default(
+        lambda point: (isinstance(puzzle.get(point), tuple)
+                       and puzzle.get(point)[not vertical] is not None
+                       and not possible_after_hint(point))))
 
 
 def check(message):
@@ -50,8 +49,8 @@ def find_impossible_free_cells(puzzle: dict):
                           (free_cell[0], free_cell[1] - 1)))
             .map(lambda cell: puzzle.get(cell))
             .count(lambda cell: isinstance(cell, tuple)
-                                or isinstance(cell, set) or isinstance(cell,
-                                                                       int))) == 2
+                                or isinstance(cell, set)
+                                or isinstance(cell, int))) == 2
 
     return (Iterable(puzzle)
         .first_or_default(lambda cell: isinstance(puzzle.get(cell), set)

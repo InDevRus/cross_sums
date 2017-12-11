@@ -11,14 +11,13 @@ def convert_to_token(item) -> str:
     if isinstance(item, tuple):
         return '\\'.join(Iterable(item)
                          .map(lambda element:
-                             '' if element is None else str(element)))
+                              '' if element is None else str(element)))
 
 
 def convert_puzzle(puzzle: dict):
     def yield_strings():
         maximum_length = (Iterable(puzzle.values())
-            .max(lambda value:
-                 len(convert_to_token(value))))
+            .max(lambda value: len(convert_to_token(value))))
 
         converted = ''
         height, width = (Iterable(Iterable(puzzle)
