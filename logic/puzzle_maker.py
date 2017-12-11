@@ -6,7 +6,7 @@ def parse_token(token: str) -> object:
     message = 'Invalid token "{0}" in {1} line, {2} token.'
     if token == '_':
         return {*range(1, 10)}
-    elif token == ':':
+    elif token == '\\':
         return None
     elif token.isdecimal():
         value = int(token)
@@ -14,11 +14,11 @@ def parse_token(token: str) -> object:
             raise SyntaxError(message)
         return value
     else:
-        parts = token.split(':')
+        parts = token.split('\\')
         if (Iterable(parts).count() != 2
                 or (Iterable(parts)
-                        .filter(
-                    lambda string: not string.isdecimal() and string != '')
+                        .filter(lambda string:
+                                not string.isdecimal() and string != '')
                         .count()) != 0):
             raise SyntaxError(message)
         return tuple(int(part) if part != '' else None for part in parts)

@@ -9,9 +9,9 @@ class ConverterTests(unittest.TestCase):
     def test_convert_puzzle(self):
         puzzle = {(0, 0): 1, (0, 1): (1, None), (1, 0): {1, 2}, (1, 1): None,
                   (2, 0): {1}, (2, 1): (None, 3)}
-        return [(puzzle, ('1      1:     ',
-                          '{1, 2} :      ',
-                          '{1}    :3     '))]
+        return [(puzzle, ('1      1\\     ',
+                          '{1, 2} \\      ',
+                          '{1}    \\3     '))]
 
 
 if __name__ == '__main__':

@@ -3,14 +3,14 @@ from utilities.iterable import Iterable
 
 def convert_to_token(item) -> str:
     if item is None:
-        return ':'
+        return '\\'
     if isinstance(item, int):
         return str(item)
     if isinstance(item, set):
         return str(item)
     if isinstance(item, tuple):
-        return ':'.join(Iterable(item)
-                        .map(lambda element:
+        return '\\'.join(Iterable(item)
+                         .map(lambda element:
                              '' if element is None else str(element)))
 
 

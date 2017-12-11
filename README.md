@@ -49,14 +49,14 @@ Let's select for example this puzzle.
 In the described language it can be written as:
 
 ```
-:   23: 30:   :     :     27: 12: 16:
-:16 _   _     :     17:24 _   _   _
-:17 _   _     15:29 _     _   _   _
-:35 _   _     _     _     _   12: :
-:   :7  _     _     7:8   _   _   7:
-:   11: 10:16 _     _     _   _   _
-:21 _   _     _     _     :5  _   _
-:6  _   _     _     :     :3  _   _
+\   23\ 30\   \     \     27\ 12\ 16\
+\16 _   _     \     17\24 _   _   _
+\17 _   _     15\29 _     _   _   _
+\35 _   _     _     _     _   12\ \
+\   \7  _     _     7\8   _   _   7\
+\   11\ 10\16 _     _     _   _   _
+\21 _   _     _     _     \5  _   _
+\6  _   _     _     \     \3  _   _
 ```
 
 ***Note that multiple spaces inserted only with an aesthetic purpose to make input seem less complicated. There is absolutely no difference between one and multiple spaces!***

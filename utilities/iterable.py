@@ -37,6 +37,12 @@ class Iterable:
     def __next__(self):
         return next(self._data)
 
+    def __contains__(self, item):
+        for entry in self:
+            if entry == item:
+                return True
+        return False
+
     @perform_filtering
     def filter(self):
         return self
