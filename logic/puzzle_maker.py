@@ -25,18 +25,6 @@ def parse_token(token: str) -> object:
 
 
 def make_puzzle(file) -> dict:
-    """
-    Makes puzzle from file.
-
-    Args:
-        file (file): File object.
-
-    Raises:
-          SyntaxError: If invalid token found somewhere.
-
-    Returns (dict): Puzzle.
-    """
-
     def yield_tokens():
         nonlocal line_number, token_number
         line = file.readline()
