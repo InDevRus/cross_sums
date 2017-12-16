@@ -41,7 +41,7 @@ def execute():
                 print()
 
     except SyntaxError as exception:
-        print(str(exception))
+        print(str(exception), file=stderr)
         exit(2)
 
     except RuntimeError as exception:
