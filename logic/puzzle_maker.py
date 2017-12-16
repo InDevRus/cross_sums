@@ -17,9 +17,9 @@ def parse_token(token: str) -> object:
         parts = token.split('\\')
         if (Iterable(parts).count() != 2
             or (Iterable(parts)
-                        .filter(lambda string:
-                                    not string.isdecimal() and string != '')
-                        .count()) != 0):
+                .filter(lambda string:
+                        not string.isdecimal() and string != '')
+                .count()) != 0):
             raise SyntaxError(message)
         return tuple(int(part) if part != '' else None for part in parts)
 

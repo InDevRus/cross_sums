@@ -49,13 +49,12 @@ def find_impossible_free_cells(puzzle: dict):
                           (free_cell[0], free_cell[1] - 1)))
                 .map(lambda cell: puzzle.get(cell))
                 .count(lambda cell: isinstance(cell, tuple)
-                                    or isinstance(cell, set)
-                                    or isinstance(cell, int))) == 2
+                       or isinstance(cell, set)
+                       or isinstance(cell, int))) == 2
 
     return (Iterable(puzzle)
             .first_or_default(lambda cell: isinstance(puzzle.get(cell), set)
-                                           and not possible_before_free_cell(
-        cell)))
+                              and not possible_before_free_cell(cell)))
 
 
 def check_puzzle(puzzle: dict):

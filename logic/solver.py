@@ -130,8 +130,8 @@ def exclude_impossible_numbers(puzzle: dict) -> dict:
     while was_reduce:
         was_reduce = False
         for free_cell in (Iterable(puzzle)
-                                  .filter(lambda cell:
-                                          isinstance(puzzle.get(cell), set))):
+                          .filter(lambda cell:
+                                  isinstance(puzzle.get(cell), set))):
             for possible_number in puzzle.get(free_cell):
                 new_puzzle = puzzle.copy()
                 new_puzzle[free_cell] = {possible_number}

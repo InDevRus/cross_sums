@@ -1,3 +1,4 @@
+# noinspection PyUnresolvedReferences
 import pathmagic
 from unittest import main
 import argparse

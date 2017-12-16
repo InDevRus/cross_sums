@@ -1,3 +1,4 @@
+# noinspection PyUnresolvedReferences
 import pathmagic
 import unittest
 from test_decorators import *
