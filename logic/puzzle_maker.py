@@ -16,9 +16,9 @@ def parse_token(token: str) -> object:
     else:
         parts = token.split('\\')
         if (Iterable(parts).count() != 2
-                or (Iterable(parts)
+            or (Iterable(parts)
                         .filter(lambda string:
-                                not string.isdecimal() and string != '')
+                                    not string.isdecimal() and string != '')
                         .count()) != 0):
             raise SyntaxError(message)
         return tuple(int(part) if part != '' else None for part in parts)
@@ -42,7 +42,7 @@ def make_puzzle(file) -> dict:
         line = file.readline()
         while line != '':
             tokens = (Iterable(finditer('\S+', line))
-                .map(lambda match_object: match_object.group(0)))
+                      .map(lambda match_object: match_object.group(0)))
             for part in tokens:
                 yield part
                 token_number += 1

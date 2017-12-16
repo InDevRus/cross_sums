@@ -63,7 +63,7 @@ def fill_block(puzzle: dict, hint: tuple, horizontal: bool):
 
 def fill_free_cells(puzzle: dict):
     hints = (Iterable(puzzle)
-        .filter(lambda cell: isinstance(puzzle.get(cell), tuple)))
+             .filter(lambda cell: isinstance(puzzle.get(cell), tuple)))
     for hint in hints:
         value = puzzle.get(hint)
         if value[0] is not None:
@@ -78,13 +78,13 @@ def get_neighbor_cells(puzzle: dict, cell: tuple):
     def update_current():
         nonlocal current
         offset = (Iterable(direction)
-            .to_tuple(lambda number: number * multiplier))
+                  .to_tuple(lambda number: number * multiplier))
         current = (Iterable(offset)
-            .zip(cell)
-            .to_tuple(lambda iterable: Iterable(iterable).sum()))
+                   .zip(cell)
+                   .to_tuple(lambda iterable: Iterable(iterable).sum()))
 
     directions = (Iterable((-1, 1))
-        .chain(lambda number: ((0, number), (number, 0))))
+                  .chain(lambda number: ((0, number), (number, 0))))
     for direction in directions:
         multiplier = 1
         current = None
@@ -108,8 +108,8 @@ def reduce_puzzle(puzzle: dict) -> dict:
         was_reduce = False
         puzzle = fill_free_cells(puzzle)
         solved_cells = (Iterable(puzzle)
-            .filter(lambda cell: is_cell_solved(cell))
-            .to_tuple())
+                        .filter(lambda cell: is_cell_solved(cell))
+                        .to_tuple())
         for solved_cell in solved_cells:
             was_reduce = True
             new_value = Iterable(puzzle.get(solved_cell)).first()
@@ -130,8 +130,8 @@ def exclude_impossible_numbers(puzzle: dict) -> dict:
     while was_reduce:
         was_reduce = False
         for free_cell in (Iterable(puzzle)
-                .filter(lambda cell:
-                        isinstance(puzzle.get(cell), set))):
+                                  .filter(lambda cell:
+                                          isinstance(puzzle.get(cell), set))):
             for possible_number in puzzle.get(free_cell):
                 new_puzzle = puzzle.copy()
                 new_puzzle[free_cell] = {possible_number}
@@ -163,14 +163,14 @@ def solve_puzzle(puzzle: dict) -> dict:
 
 def is_puzzle_solved(puzzle: dict) -> bool:
     return (Iterable(puzzle.values())
-        .count(lambda value: isinstance(value, set))) == 0
+            .count(lambda value: isinstance(value, set))) == 0
 
 
 def yield_all_possible_solutions(puzzle: dict):
     first_unsolved_cell = (Iterable(puzzle)
-        .first_or_default(lambda cell:
-                          isinstance(puzzle.get(cell),
-                                     set)))
+                           .first_or_default(lambda cell:
+                                             isinstance(puzzle.get(cell),
+                                                        set)))
     if first_unsolved_cell is None:
         yield puzzle
         return

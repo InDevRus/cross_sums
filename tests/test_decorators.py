@@ -18,7 +18,7 @@ def assert_equality(func, iterable: bool = False, out_type=tuple,
                         self.assertIn(element, result)
                 else:
                     comparator = (self.assertEqual if not assert_difference
-                    else self.assertNotEqual)
+                                  else self.assertNotEqual)
                     comparator(result, args[-1])
         return wrapped
     return decorator
@@ -70,8 +70,8 @@ def wrap_string_in_io(position: int = 0, iterable: bool = False):
             for args in data:
                 if iterable:
                     args[position] = (Iterable(args[position])
-                        .to_list(lambda string:
-                                 StringIO(string)))
+                                      .to_list(lambda string:
+                                               StringIO(string)))
                 else:
                     args[position] = StringIO(args[position])
             return data

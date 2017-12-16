@@ -13,7 +13,7 @@ def print_puzzle(puzzle: dict):
         print(string)
 
 
-def main():
+def execute():
     parser = argparse.ArgumentParser(
         description='Cross sums (also known as "Kakuro") puzzle solver.')
     parser.add_argument('-f', '--file', help='file with cross sums puzzle')
@@ -29,12 +29,12 @@ def main():
             raise SyntaxError('Limit value must be positive '
                               'number or asterisk.')
         with (stdin if arguments.file is None
-        else open(arguments.file, encoding='utf-8')) as file:
+              else open(arguments.file, encoding='utf-8')) as file:
             puzzle = make_puzzle(file)
             check_puzzle(puzzle)
             solutions = enumerate(solve_puzzle(puzzle), start=1)
             solutions = (Iterable(solutions).take(int(limit))
-            if limit != '*' else solutions)
+                         if limit != '*' else solutions)
             for pair in solutions:
                 print('Solution #{0}'.format(pair[0]))
                 print_puzzle(pair[1])
@@ -56,4 +56,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    execute()

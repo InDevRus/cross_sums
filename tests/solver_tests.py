@@ -12,14 +12,14 @@ class SolverTests(unittest.TestCase):
         return (Iterable(Iterable(range(1, 10))
                          .map(lambda number: (number, 1,
                                               {frozenset({number})})))
-            .concat([(9, 1, {frozenset({9})}),
-                     (10, 3, {frozenset({1, 2, 7}), frozenset({1, 3, 6}),
-                              frozenset({1, 4, 5}), frozenset({2, 3, 5})}),
-                     (34, 7, {frozenset({1, 2, 3, 4, 7, 8, 9}),
-                              frozenset({1, 2, 3, 5, 6, 8, 9}),
-                              frozenset({1, 2, 4, 5, 6, 7, 9}),
-                              frozenset({1, 3, 4, 5, 6, 7, 8})})])
-            .to_tuple())
+                .concat([(9, 1, {frozenset({9})}),
+                         (10, 3, {frozenset({1, 2, 7}), frozenset({1, 3, 6}),
+                                  frozenset({1, 4, 5}), frozenset({2, 3, 5})}),
+                         (34, 7, {frozenset({1, 2, 3, 4, 7, 8, 9}),
+                                  frozenset({1, 2, 3, 5, 6, 8, 9}),
+                                  frozenset({1, 2, 4, 5, 6, 7, 9}),
+                                  frozenset({1, 3, 4, 5, 6, 7, 8})})])
+                .to_tuple())
 
     @assert_equality(lambda left, right:
                      len(solver.find_unique_combinations(left, right)))

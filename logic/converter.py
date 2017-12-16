@@ -17,13 +17,13 @@ def convert_to_token(item) -> str:
 def convert_puzzle(puzzle: dict):
     def yield_strings():
         maximum_length = (Iterable(puzzle.values())
-            .max(lambda value: len(convert_to_token(value))))
+                          .max(lambda value: len(convert_to_token(value))))
 
         converted = ''
         height, width = (Iterable(Iterable(puzzle)
                                   .max(lambda subject: subject[position])
                                   for position in range(2))
-            .map(lambda subject: subject + 1))
+                         .map(lambda subject: subject + 1))
 
         for x in range(height):
             for y in range(width):
