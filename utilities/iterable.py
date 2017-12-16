@@ -1,5 +1,5 @@
+import itertools
 from functools import reduce
-from itertools import chain, islice
 from operator import mul
 
 __all__ = ['Iterable']
@@ -7,7 +7,7 @@ __all__ = ['Iterable']
 
 def perform_mapping(func):
     def wrapped(self, selector=lambda entry: entry):
-        self._data = map(selector, self._data)
+        self._data = map(selector, self)
         return func(self)
 
     return wrapped
@@ -15,7 +15,7 @@ def perform_mapping(func):
 
 def perform_filtering(func):
     def wrapped(self, predicate=lambda entry: True):
-        self._data = filter(predicate, self._data)
+        self._data = filter(predicate, self)
         return func(self)
 
     return wrapped
@@ -23,7 +23,7 @@ def perform_filtering(func):
 
 class Iterable:
     def __init__(self, *iterators):
-        self._data = chain(*iterators)
+        self._data = itertools.chain(*iterators)
 
     def __repr__(self) -> str:
         return str(self)
@@ -53,15 +53,30 @@ class Iterable:
 
     @perform_mapping
     def chain(self):
-        self._data = chain(*self)
+        self._data = itertools.chain(*self)
         return self
 
     def concat(self, other):
-        self._data = chain(iter(self), other)
+        self._data = itertools.chain(iter(self), other)
         return self
 
     def zip(self, other):
         self._data = zip(self, other)
+        return self
+
+    def distinct(self, key_selector=lambda subject: subject,
+                 hashable: bool = False, comparable: bool = False):
+        passed = []
+        if hashable:
+            iterator = iter({*map(key_selector, self)})
+        elif comparable:
+            iterator = map(lambda pair: pair[0],
+                           itertools.groupby(sorted(self, key=key_selector)))
+        else:
+            iterator = (entry for entry in self if
+                        (entry not in passed and
+                         (passed.append(key_selector(entry)) or True)))
+        self._data = iterator
         return self
 
     @perform_mapping
@@ -79,6 +94,10 @@ class Iterable:
     @perform_mapping
     def composition(self):
         return reduce(mul, self)
+
+    def product(self, other):
+        self._data = itertools.product(self, other)
+        return self
 
     @perform_filtering
     def count(self) -> int:
@@ -98,7 +117,7 @@ class Iterable:
             return default
 
     def take(self, amount: int):
-        self._data = islice(self, amount)
+        self._data = itertools.islice(self, amount)
         return self
 
     @perform_mapping
