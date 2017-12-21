@@ -1,5 +1,10 @@
 from functools import lru_cache
 from utilities.iterable import Iterable
+from logic.exceptions import UnsolvablePuzzleError
+
+
+def inc(number: int):
+    return number + 1
 
 
 @lru_cache(maxsize=(sum(range(1, 10)) * 9 * 2 ** 9))
@@ -47,17 +52,19 @@ def fill_block(puzzle: dict, hint: tuple, horizontal: bool):
         return puzzle
     combinations = find_unique_combinations(hint_sum, len(block), restricted)
     if combinations == set():
-        raise RuntimeError('No possible sum combination for {0} hint '
-                           'in {1} line, {2} token.'
-                           .format('horizontal' if horizontal else 'vertical',
-                                   *hint))
+        raise UnsolvablePuzzleError('No possible sum combination for {0} hint '
+                                    'in {1} line, {2} token.'
+                                    .format('horizontal' if horizontal
+                                            else 'vertical',
+                                            *Iterable(hint).map(inc)))
 
     possible_numbers = Iterable(combinations).chain().to_set()
     for cell in block:
         puzzle[cell] = puzzle.get(cell).intersection(possible_numbers)
         if puzzle.get(cell) == set():
-            raise RuntimeError('No possible values to fill free cell in '
-                               '{0} line, {1} token.'.format(*cell))
+            raise UnsolvablePuzzleError('No possible values to fill free '
+                                        'cell in {0} line, {1} token.'
+                                        .format(*Iterable(cell).map(inc)))
     return puzzle
 
 
@@ -117,9 +124,11 @@ def reduce_puzzle(puzzle: dict) -> dict:
             for neighbor in get_neighbor_cells(puzzle, solved_cell):
                 reduced_cell = puzzle.get(neighbor) - {new_value}
                 if reduced_cell == set():
-                    raise RuntimeError('No possible number after reduce in '
-                                       '{0} line, {1} token.'
-                                       .format(*solved_cell))
+                    raise (UnsolvablePuzzleError
+                           ('No possible number after '
+                            'reduce in {0} line, '
+                            '{1} token.'
+                            .format(*Iterable(solved_cell).map(inc))))
                 puzzle[neighbor] = reduced_cell
 
     return puzzle
@@ -137,12 +146,13 @@ def exclude_impossible_numbers(puzzle: dict) -> dict:
                 new_puzzle[free_cell] = {possible_number}
                 try:
                     reduce_puzzle(new_puzzle)
-                except RuntimeError:
+                except UnsolvablePuzzleError:
                     reduced_cell = puzzle.get(free_cell) - {possible_number}
                     if reduced_cell == set():
-                        raise RuntimeError(
-                            'No possible number after reduce in '
-                            '{0} line, {1} token.'.format(*free_cell))
+                        raise (UnsolvablePuzzleError
+                               ('No possible number after reduce in '
+                                '{0} line, {1} token.'
+                                .format(*Iterable(free_cell).map(inc))))
                     was_reduce = True
                     puzzle[free_cell] = reduced_cell
             reduce_puzzle(puzzle)
@@ -167,6 +177,7 @@ def is_puzzle_solved(puzzle: dict) -> bool:
 
 
 def yield_all_possible_solutions(puzzle: dict):
+    found_solution = False
     first_unsolved_cell = (Iterable(puzzle)
                            .first_or_default(lambda cell:
                                              isinstance(puzzle.get(cell),
@@ -181,5 +192,8 @@ def yield_all_possible_solutions(puzzle: dict):
             reduce_puzzle(new_puzzle)
             exclude_impossible_numbers(new_puzzle)
             yield from yield_all_possible_solutions(new_puzzle)
-        except RuntimeError:
+            found_solution = True
+        except UnsolvablePuzzleError:
             pass
+    if not found_solution:
+        raise UnsolvablePuzzleError('No solutions were found via brute force.')

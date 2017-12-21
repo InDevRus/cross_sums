@@ -172,10 +172,21 @@ class SolverTests(unittest.TestCase):
 
     @assert_raises(solver.reduce_puzzle, RuntimeError,
                    'No possible number after reduce in \d+ line, \d+ token.')
-    def test_unsolvable_test_after_reduce(self):
-        string = StringIO('\\   17\\\n'
-                          '\\8   _  \n'
-                          '\\8 _  \n')
+    def test_unsolvable_puzzle_after_reduce(self):
+        string = StringIO('\\   17\\ \n'
+                          '\\8  _    \n'
+                          '\\8  _    \n')
+        puzzle = make_puzzle(string)
+        puzzle = solver.fill_free_cells(puzzle)
+        return [[puzzle]]
+
+    @assert_raises(solver.solve_puzzle, RuntimeError,
+                   'No solutions were found via brute force.')
+    def test_unsolvable_test_puzzle_via_brute_force(self):
+        string = StringIO('\\   9\\ 12\\ 8\\\n'
+                          '\\8  _  _   _\n'
+                          '\\6  _  _   _\n'
+                          '\\10 _  _   _\n')
         puzzle = make_puzzle(string)
         puzzle = solver.fill_free_cells(puzzle)
         return [[puzzle]]

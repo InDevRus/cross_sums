@@ -45,7 +45,7 @@ def execute():
         exit(2)
 
     except RuntimeError as exception:
-        print('Puzzle is unsolvable. {0}'.format(str(exception)), file=stderr)
+        print(str(exception), file=stderr)
         exit(3)
 
     except Exception as exception:
