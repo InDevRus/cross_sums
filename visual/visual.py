@@ -55,8 +55,8 @@ class Window(QMainWindow):
         self._next_solution_button = next_solution_button
 
         file_menu.addAction(loader)
-        file_menu.addAction(exit_button)
         file_menu.addAction(next_solution_button)
+        file_menu.addAction(exit_button)
 
     def load_puzzle_dialog(self):
         dialog = QFileDialog(self)
