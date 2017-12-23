@@ -177,23 +177,39 @@ def is_puzzle_solved(puzzle: dict) -> bool:
 
 
 def yield_all_possible_solutions(puzzle: dict):
+    # noinspection PyShadowingNames
+    def generator(puzzle: dict):
+        nonlocal found_solution
+        first_unsolved_cell = (Iterable(puzzle)
+                               .first_or_default(lambda cell:
+                                                 isinstance(puzzle.get(cell),
+                                                            set)))
+        if first_unsolved_cell is None:
+            if is_solution_valid(puzzle):
+                found_solution = True
+                yield puzzle
+            return
+        for possible_number in puzzle.get(first_unsolved_cell):
+            new_puzzle = puzzle.copy()
+            new_puzzle[first_unsolved_cell] = {possible_number}
+            try:
+                reduce_puzzle(new_puzzle)
+                exclude_impossible_numbers(new_puzzle)
+                yield from generator(new_puzzle)
+            except UnsolvablePuzzleError:
+                pass
+
     found_solution = False
-    first_unsolved_cell = (Iterable(puzzle)
-                           .first_or_default(lambda cell:
-                                             isinstance(puzzle.get(cell),
-                                                        set)))
-    if first_unsolved_cell is None:
-        yield puzzle
-        return
-    for possible_number in puzzle.get(first_unsolved_cell):
-        new_puzzle = puzzle.copy()
-        new_puzzle[first_unsolved_cell] = {possible_number}
-        try:
-            reduce_puzzle(new_puzzle)
-            exclude_impossible_numbers(new_puzzle)
-            yield from yield_all_possible_solutions(new_puzzle)
-            found_solution = True
-        except UnsolvablePuzzleError:
-            pass
+    yield from generator(puzzle)
     if not found_solution:
         raise UnsolvablePuzzleError('No solutions were found via brute force.')
+
+
+def is_solution_valid(puzzle: dict) -> bool:
+    for hint in (Iterable(puzzle)
+                 .filter(lambda cell: isinstance(puzzle.get(cell), tuple))):
+        for orientation in range(2):
+            if puzzle.get(hint)[orientation] is not None:
+                if get_block(puzzle, hint, bool(orientation))[0] != 0:
+                    return False
+    return True

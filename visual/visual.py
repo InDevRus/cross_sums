@@ -105,7 +105,10 @@ class Window(QMainWindow):
         if self._solutions is None:
             self._solutions = generator()
 
-        self._puzzle = next(self._solutions)
+        try:
+            self._puzzle = next(self._solutions)
+        except RuntimeError as exception:
+            self.yell_message(str(exception))
         self.draw_puzzle()
 
     def yell_message(self, message: str):
