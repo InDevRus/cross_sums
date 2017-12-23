@@ -5,7 +5,7 @@ from PyQt5.QtCore import *
 
 from logic.puzzle_maker import make_puzzle
 from logic.error_checker import check_puzzle
-from logic.solver import yield_all_possible_solutions
+from logic.solver import solve_puzzle
 from utilities.iterable import Iterable
 
 
@@ -39,6 +39,7 @@ class Window(QMainWindow):
     # noinspection PyUnresolvedReferences
     def initialize_menu(self):
         menu = self.menuBar()
+        menu.setNativeMenuBar(False)
         file_menu = menu.addMenu('File')
 
         loader = QAction('Load puzzle', self)
@@ -85,9 +86,19 @@ class Window(QMainWindow):
     def yield_next_solution(self):
         def generator():
             puzzle = self._puzzle.copy()
-            solutions = tuple(yield_all_possible_solutions(puzzle))
+            solutions = []
+            counter = 0
+            first_cycle = True
             while True:
-                yield from solutions
+                for solution in solve_puzzle(puzzle):
+                    if counter < 250 and first_cycle:
+                        solutions.append(solution)
+                    yield solution
+                    counter += 1
+                if counter < 250:
+                    while True:
+                        yield from solutions
+                first_cycle = False
 
         if self._solutions is None:
             self._solutions = generator()
