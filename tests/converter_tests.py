@@ -1,6 +1,5 @@
 # noinspection PyUnresolvedReferences
 import pathmagic
-import unittest
 from tests.test_decorators import *
 from logic import converter
 

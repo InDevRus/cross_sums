@@ -1,5 +1,10 @@
 from io import StringIO
 from utilities.iterable import Iterable
+import unittest
+
+__all__ = ['assert_raises', 'assert_equality', 'assert_inclusion',
+           'append_arguments', 'wrap_string_in_io', 'unittest', 'Iterable',
+           'StringIO']
 
 
 def assert_equality(func, iterable: bool = False, out_type=tuple,

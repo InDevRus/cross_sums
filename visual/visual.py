@@ -1,9 +1,8 @@
-# noinspection PyUnresolvedReferences
-import pathmagic
 from sys import argv, exit
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt5.QtWidgets import (QMainWindow, QStatusBar, QWidget, QLabel,
+                             QFileDialog, QMessageBox, QApplication, QAction)
+from PyQt5.QtGui import (QPainter, QFont)
+from PyQt5.QtCore import (QPoint, QRect, Qt, QSize)
 
 from logic.puzzle_maker import make_puzzle
 from logic.error_checker import check_puzzle
@@ -20,9 +19,14 @@ class Window(QMainWindow):
         self._puzzle = None
         self._solutions = None
         self._next_solution_button = None
+        self._status_label = None
+        self._solution_number = self._total_solutions = 0
+        self._solution_holding_limit = 50
 
         self.initialize_window()
         self.initialize_menu()
+        self.initialize_status_bar()
+
         self.show()
 
     def initialize_window(self):
@@ -38,10 +42,18 @@ class Window(QMainWindow):
         self.paint_widget.move(0, 21)
         self.paint_widget.resize(self.width(), self.height())
 
+    def initialize_status_bar(self):
+        status_bar = QStatusBar(self)
+        self.setStatusBar(status_bar)
+
+        self._status_label = QLabel()
+        status_bar.addPermanentWidget(self._status_label)
+
     # noinspection PyUnresolvedReferences
     def initialize_menu(self):
         menu = self.menuBar()
         menu.setNativeMenuBar(False)
+
         file_menu = menu.addMenu('File')
 
         loader = QAction('Load puzzle', self)
@@ -74,6 +86,7 @@ class Window(QMainWindow):
         try:
             self._puzzle_file = file_name
             self.initialize_puzzle()
+            self._total_solutions = self._solution_number = 0
             self.draw_puzzle()
             self._solutions = None
             self._next_solution_button.setEnabled(True)
@@ -87,28 +100,35 @@ class Window(QMainWindow):
 
     def yield_next_solution(self):
         def generator():
+            def recount_numbers():
+                self._solution_number = counter
+                self._total_solutions = max(self._total_solutions, counter)
+
             puzzle = self._puzzle.copy()
             solutions = []
             counter = 0
             first_cycle = True
             while True:
-                for solution in solve_puzzle(puzzle):
-                    if counter < 250 and first_cycle:
+                for counter, solution in enumerate(solve_puzzle(puzzle),
+                                                   start=1):
+                    if counter < self._solution_holding_limit and first_cycle:
                         solutions.append(solution)
+                    recount_numbers()
                     yield solution
-                    counter += 1
-                if counter < 250:
+                if counter < self._solution_holding_limit:
                     while True:
-                        yield from solutions
+                        for counter, solution in enumerate(solutions, start=1):
+                            recount_numbers()
+                            yield solution
                 first_cycle = False
 
         if self._solutions is None:
             self._solutions = generator()
-
         try:
             self._puzzle = next(self._solutions)
         except RuntimeError as exception:
             self.yell_message(str(exception))
+            self._solutions = None
         self.draw_puzzle()
 
     def yell_message(self, message: str):
@@ -125,8 +145,15 @@ class Window(QMainWindow):
                                   .max(lambda pair: pair[dimension])
                                   for dimension in range(2))
                          .to_tuple(lambda number: number + 1))
-        self.setFixedSize(QSize(height * 50 + 1, width * 50 + 22))
+        self.setFixedSize(QSize(height * 50 + 1, width * 50 + 2 + 20 + 20))
         self.paint_widget.resize(self.width(), self.height())
+
+        message = 'Current solution: {0}, total: {1}.'
+        self.draw_status_bar(message.format(self._solution_number,
+                                            self._total_solutions))
+
+    def draw_status_bar(self, message):
+        self._status_label.setText(message)
 
 
 def draw(pen_color, brush_color):
