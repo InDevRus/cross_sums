@@ -1,4 +1,5 @@
 from utilities.iterable import Iterable
+from functools import wraps
 
 
 def find_invalid_hints(puzzle: dict, vertical: bool):
@@ -15,6 +16,7 @@ def find_invalid_hints(puzzle: dict, vertical: bool):
 
 def check(message):
     def decorator(func):
+        @wraps(func)
         def wrapped(puzzle: dict):
             result = func(puzzle)
             if result is not None:

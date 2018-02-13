@@ -10,6 +10,7 @@ from logic.puzzle_maker import make_puzzle
 from logic.error_checker import check_puzzle
 from logic.solver import solve_puzzle
 from utilities.iterable import Iterable
+from functools import wraps
 
 
 class SolveThread(QThread):
@@ -203,6 +204,7 @@ class CrossSumsWindow(QMainWindow):
 
 def draw(pen_color, brush_color):
     def decorator(func):
+        @wraps(func)
         def wrapped(self, *args):
             painter = self.painter
             painter.setPen(pen_color)
