@@ -1,5 +1,5 @@
 import argparse
-from sys import stderr, stdin, exit
+import sys
 
 from utilities.iterable import Iterable
 from logic.error_checker import check_puzzle
@@ -28,7 +28,7 @@ def execute():
                 or limit.isnumeric() and int(limit) < 1):
             raise SyntaxError('Limit value must be positive '
                               'number or asterisk.')
-        with (stdin if arguments.file is None
+        with (sys.stdin if arguments.file is None
               else open(arguments.file, encoding='utf-8')) as file:
             puzzle = make_puzzle(file)
             check_puzzle(puzzle)
@@ -41,18 +41,18 @@ def execute():
                 print()
 
     except SyntaxError as exception:
-        print(str(exception), file=stderr)
-        exit(2)
+        print(str(exception), file=sys.stderr)
+        sys.exit(2)
 
     except RuntimeError as exception:
-        print(str(exception), file=stderr)
-        exit(3)
+        print(str(exception), file=sys.stderr)
+        sys.exit(3)
 
     except Exception as exception:
-        print(str(exception), file=stderr)
-        exit(1)
+        print(str(exception), file=sys.stderr)
+        sys.exit(1)
 
-    exit(0)
+    sys.exit(0)
 
 
 if __name__ == '__main__':

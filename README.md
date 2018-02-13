@@ -72,3 +72,10 @@ Graphic interface can be simply ran this way.
 ```
 py cross_sums/visual
 ```
+
+### Tests
+
+Tests can be simply launched via
+```
+pytest
+```

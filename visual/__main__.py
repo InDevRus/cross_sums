@@ -1,6 +1,6 @@
 # noinspection PyUnresolvedReferences
 import pathmagic
-from sys import argv, exit
+import sys
 from PyQt5.QtWidgets import (QMainWindow, QFileDialog, QMessageBox, QWidget,
                              QApplication, QStatusBar, QAction, QLabel)
 from PyQt5.QtGui import (QPainter, QFont)
@@ -291,6 +291,6 @@ class PaintWidget(QWidget):
 
 
 if __name__ == '__main__':
-    app = QApplication(argv)
+    app = QApplication(sys.argv)
     window = CrossSumsWindow()
-    exit(app.exec_())
+    sys.exit(app.exec_())

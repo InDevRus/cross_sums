@@ -1,17 +1,19 @@
-from io import StringIO
-from utilities.iterable import Iterable
 import unittest
+from io import StringIO
+from functools import wraps
 
-__all__ = ['assert_raises', 'assert_equality', 'assert_inclusion',
-           'append_arguments', 'wrap_string_in_io', 'unittest', 'Iterable',
-           'StringIO']
+from utilities.iterable import Iterable
+
+__all__ = ['assert_equality', 'append_arguments', 'assert_raises',
+           'wrap_string_in_io', 'unittest', 'StringIO', 'Iterable']
 
 
-def assert_equality(func, iterable: bool = False, out_type=tuple,
-                    assert_difference: bool = False,
+def assert_equality(func=lambda subject: subject, iterable: bool = False,
+                    out_type=tuple, assert_difference: bool = False,
                     orderless: bool = False):
     def decorator(test_method):
-        def wrapped(self):
+        @wraps(test_method)
+        def wrapped(self: unittest.TestCase):
             self.maxDiff = None
             for args in test_method(self):
                 result = func(*args[:-1])
@@ -29,25 +31,11 @@ def assert_equality(func, iterable: bool = False, out_type=tuple,
     return decorator
 
 
-def assert_inclusion(func, iterable: bool = False, out_type=tuple,
-                     assert_exclusion: bool = False):
-    def decorator(test_method):
-        def wrapped(self):
-            self.maxDiff = None
-            for args in test_method(self):
-                result = func(*args[:-1])
-                result = out_type(result) if iterable else result
-                comparator = (self.assertIn if not assert_exclusion
-                              else self.assertNotIn)
-                comparator(result, args[-1])
-        return wrapped
-    return decorator
-
-
 def assert_raises(func, exception, regex: str = None,
                   iterable=True, out_type=tuple):
     def decorator(test_method):
-        def wrapped(self):
+        @wraps(test_method)
+        def wrapped(self: unittest.TestCase):
             for args in test_method(self):
                 with (self.assertRaises(exception) if regex is None else
                       self.assertRaisesRegex(exception, regex)):
@@ -58,7 +46,8 @@ def assert_raises(func, exception, regex: str = None,
 
 def append_arguments(*args, position: int = -1):
     def decorator(test_method):
-        def wrapped(self):
+        @wraps(test_method)
+        def wrapped(self: unittest.TestCase):
             data = test_method(self)
             for arguments in data:
                 for argument in args:
@@ -70,7 +59,8 @@ def append_arguments(*args, position: int = -1):
 
 def wrap_string_in_io(position: int = 0, iterable: bool = False):
     def decorator(test_method):
-        def wrapped(self):
+        @wraps(test_method)
+        def wrapped(self: unittest.TestCase):
             data = test_method(self)
             for args in data:
                 if iterable:
