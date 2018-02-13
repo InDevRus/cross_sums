@@ -1,11 +1,12 @@
 import itertools
-from functools import reduce
+from functools import reduce, wraps
 from operator import mul
 
 __all__ = ['Iterable']
 
 
 def perform_mapping(func):
+    @wraps(func)
     def wrapped(self, selector=lambda entry: entry):
         self._data = map(selector, self)
         return func(self)
@@ -14,6 +15,7 @@ def perform_mapping(func):
 
 
 def perform_filtering(func):
+    @wraps(func)
     def wrapped(self, predicate=lambda entry: True):
         self._data = filter(predicate, self)
         return func(self)
@@ -79,13 +81,15 @@ class Iterable:
         self._data = iterator
         return self
 
-    @perform_mapping
-    def max(self):
-        return max(self)
+    def sort(self, key_selector=lambda entry: entry):
+        self._data = sorted(self, key=key_selector)
+        return self
 
-    @perform_mapping
-    def min(self):
-        return min(self)
+    def max(self, key_selector=lambda entry: entry):
+        return max(self, key=key_selector)
+
+    def min(self, key_selector=lambda entry: entry):
+        return min(self, key=key_selector)
 
     @perform_mapping
     def sum(self):
@@ -138,6 +142,6 @@ class Iterable:
         for element in self:
             key = key_selector(element)
             lookup.setdefault(key, [])
-            lookup.get(key).append(key)
+            lookup.get(key).append(element)
 
         return lookup

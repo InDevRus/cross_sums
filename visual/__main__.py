@@ -1,8 +1,10 @@
+# noinspection PyUnresolvedReferences
+import pathmagic
 from sys import argv, exit
-from PyQt5.QtWidgets import (QMainWindow, QStatusBar, QWidget, QLabel,
-                             QFileDialog, QMessageBox, QApplication, QAction)
+from PyQt5.QtWidgets import (QMainWindow, QFileDialog, QMessageBox, QWidget,
+                             QApplication, QStatusBar, QAction, QLabel)
 from PyQt5.QtGui import (QPainter, QFont)
-from PyQt5.QtCore import (QPoint, QRect, Qt, QSize)
+from PyQt5.QtCore import (Qt, QPoint, QRect, QSize, QThread, pyqtSignal)
 
 from logic.puzzle_maker import make_puzzle
 from logic.error_checker import check_puzzle
@@ -10,18 +12,37 @@ from logic.solver import solve_puzzle
 from utilities.iterable import Iterable
 
 
-class Window(QMainWindow):
+class SolveThread(QThread):
+    completion_signal = pyqtSignal(dict, int, int)
+    failure_signal = pyqtSignal(str)
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self._generator = parent.solution_generator
+        self.completion_signal.connect(parent.save_solution)
+        self.failure_signal.connect(parent.process_failure)
+
+    def run(self):
+        try:
+            self.completion_signal.emit(*next(self._generator))
+        except RuntimeError as exception:
+            self.failure_signal.emit(str(exception))
+
+
+class CrossSumsWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.paint_widget = None
         self._puzzle_file = None
         self._puzzle = None
-        self._solutions = None
         self._next_solution_button = None
+        self._load_puzzle_button = None
         self._status_label = None
         self._solution_number = self._total_solutions = 0
         self._solution_holding_limit = 50
+        self.solution_generator = None
+        self._solve_thread = None
 
         self.initialize_window()
         self.initialize_menu()
@@ -59,6 +80,7 @@ class Window(QMainWindow):
         loader = QAction('Load puzzle', self)
         loader.triggered.connect(self.load_puzzle_dialog)
         loader.setShortcut('Ctrl+O')
+        self._load_puzzle_button = loader
 
         exit_button = QAction('Exit', self)
         exit_button.triggered.connect(self.close)
@@ -88,7 +110,7 @@ class Window(QMainWindow):
             self.initialize_puzzle()
             self._total_solutions = self._solution_number = 0
             self.draw_puzzle()
-            self._solutions = None
+            self.initialize_generator()
             self._next_solution_button.setEnabled(True)
         except Exception as exception:
             self.yell_message(str(exception))
@@ -96,40 +118,62 @@ class Window(QMainWindow):
     def initialize_puzzle(self):
         with open(self._puzzle_file, encoding='utf-8') as file:
             self._puzzle = make_puzzle(file)
-            check_puzzle(self._puzzle)
+        check_puzzle(self._puzzle)
 
-    def yield_next_solution(self):
+    def initialize_generator(self):
         def generator():
             def recount_numbers():
-                self._solution_number = counter
-                self._total_solutions = max(self._total_solutions, counter)
+                nonlocal solution_number, total_solutions
+                solution_number = solution_number
+                total_solutions = max(total_solutions, solution_number)
 
+            total_solutions = 0
             puzzle = self._puzzle.copy()
             solutions = []
-            counter = 0
+            solution_number = 0
             first_cycle = True
             while True:
-                for counter, solution in enumerate(solve_puzzle(puzzle),
-                                                   start=1):
-                    if counter < self._solution_holding_limit and first_cycle:
+                for (solution_number,
+                     solution) in enumerate(solve_puzzle(puzzle),
+                                            start=1):
+                    if (solution_number < self._solution_holding_limit
+                       and first_cycle):
                         solutions.append(solution)
                     recount_numbers()
-                    yield solution
-                if counter < self._solution_holding_limit:
+                    yield solution, solution_number, total_solutions
+                if solution_number < self._solution_holding_limit:
                     while True:
-                        for counter, solution in enumerate(solutions, start=1):
+                        for solution_number, solution in enumerate(solutions,
+                                                                   start=1):
                             recount_numbers()
-                            yield solution
+                            yield solution, solution_number, total_solutions
                 first_cycle = False
+        self.solution_generator = generator()
 
-        if self._solutions is None:
-            self._solutions = generator()
-        try:
-            self._puzzle = next(self._solutions)
-        except RuntimeError as exception:
-            self.yell_message(str(exception))
-            self._solutions = None
+    def yield_next_solution(self):
+        self.lock_actions()
+        self._solve_thread = SolveThread(self)
+        self._solve_thread.start()
+
+    def lock_actions(self):
+        self._load_puzzle_button.setEnabled(False)
+        self._next_solution_button.setEnabled(False)
+
+    def unlock_actions(self):
+        self._load_puzzle_button.setEnabled(True)
+        self._next_solution_button.setEnabled(True)
+
+    def save_solution(self, solution: dict,
+                      solution_number: int, total_solutions: int):
+        self._puzzle = solution
+        self._solution_number = solution_number
+        self._total_solutions = total_solutions
         self.draw_puzzle()
+        self.unlock_actions()
+
+    def process_failure(self, message: str):
+        self.yell_message(message)
+        self.unlock_actions()
 
     def yell_message(self, message: str):
         error_message = QMessageBox(self)
@@ -142,13 +186,14 @@ class Window(QMainWindow):
         self.paint_widget.puzzle = self._puzzle
         self.paint_widget.update()
         width, height = (Iterable(Iterable(self._puzzle)
-                                  .max(lambda pair: pair[dimension])
+                                  .map(lambda pair: pair[dimension])
+                                  .max()
                                   for dimension in range(2))
                          .to_tuple(lambda number: number + 1))
         self.setFixedSize(QSize(height * 50 + 1, width * 50 + 2 + 20 + 20))
         self.paint_widget.resize(self.width(), self.height())
 
-        message = 'Current solution: {0}, total: {1}.'
+        message = 'Solution # {0}, total: {1}.'
         self.draw_status_bar(message.format(self._solution_number,
                                             self._total_solutions))
 
@@ -247,5 +292,5 @@ class PaintWidget(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(argv)
-    window = Window()
+    window = CrossSumsWindow()
     exit(app.exec_())

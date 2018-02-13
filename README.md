@@ -64,3 +64,11 @@ In the described language it can be written as:
 ### Output
 
 Output will be dispatched in the same style.
+
+### GUI
+
+Graphic interface can be simply ran this way.
+
+```
+py cross_sums/visual
+```
