@@ -6,7 +6,7 @@ def find_invalid_hints(puzzle: dict, vertical: bool):
     def possible_after_hint(hint_cell: tuple) -> bool:
         next_cell = puzzle.get((hint_cell[0] + vertical,
                                 hint_cell[1] + (not vertical)))
-        return isinstance(next_cell, int) or isinstance(next_cell, set)
+        return isinstance(next_cell, (int, set))
 
     return (Iterable(puzzle).first_or_default(
         lambda point: (isinstance(puzzle.get(point), tuple)
@@ -50,10 +50,9 @@ def find_impossible_free_cells(puzzle: dict):
             previous = (free_cell[0] - orientation,
                         free_cell[1] - (not orientation))
             previous_value = puzzle.get(previous)
-            if not ((isinstance(previous_value, tuple)
-                     and previous_value[not orientation])
-                    or isinstance(previous_value, set)
-                    or isinstance(previous_value, int)):
+            if not (isinstance(previous_value, tuple)
+                    and previous_value[not orientation]
+                    or isinstance(previous_value, (set, int))):
                 return False
         return True
 
@@ -66,5 +65,4 @@ def check_puzzle(puzzle: dict):
     (Iterable((check_horizontal_hints,
                check_vertical_hints,
                find_impossible_free_cells))
-        .map(lambda func: func(puzzle))
-        .to_tuple())
+     .to_tuple(lambda func: func(puzzle)))

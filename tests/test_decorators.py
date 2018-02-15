@@ -65,8 +65,7 @@ def wrap_string_in_io(position: int = 0, iterable: bool = False):
             for args in data:
                 if iterable:
                     args[position] = (Iterable(args[position])
-                                      .to_list(lambda string:
-                                               StringIO(string)))
+                                      .to_list(StringIO))
                 else:
                     args[position] = StringIO(args[position])
             return data

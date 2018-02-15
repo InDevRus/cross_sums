@@ -15,13 +15,13 @@ def parse_token(token: str) -> object:
         return value
     else:
         parts = token.split('\\')
-        if (Iterable(parts).count() != 2
+        if (len(parts) != 2
             or (Iterable(parts)
-                .filter(lambda string:
-                        not string.isdecimal() and string != '')
-                .count()) != 0):
+                .count(lambda string:
+                       not string.isdecimal() and string != '')) != 0):
             raise SyntaxError(message)
-        return tuple(int(part) if part != '' else None for part in parts)
+        return (Iterable(parts)
+                .to_tuple(lambda part: int(part) if part != '' else None))
 
 
 def make_puzzle(file) -> dict:

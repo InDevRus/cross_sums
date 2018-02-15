@@ -2,19 +2,23 @@ import itertools
 from functools import reduce, wraps
 from operator import mul
 
-__all__ = ['Iterable']
+__all__ = ['Iterable', 'compose']
 
 
-def perform_mapping(func):
+def compose(*functions):
+    return reduce(lambda f, g: lambda x: g(f(x)), functions)
+
+
+def perform_mapping(func=lambda subject: subject):
     @wraps(func)
-    def wrapped(self, selector=lambda entry: entry):
-        self._data = map(selector, self)
+    def wrapped(self, selector=lambda entry: entry, *selectors):
+        self._data = map(compose(selector, *selectors), self)
         return func(self)
 
     return wrapped
 
 
-def perform_filtering(func):
+def perform_filtering(func=lambda subject: subject):
     @wraps(func)
     def wrapped(self, predicate=lambda entry: True):
         self._data = filter(predicate, self)
@@ -115,10 +119,8 @@ class Iterable:
         return next(self)
 
     def first_or_default(self, predicate=lambda entry: True, default=None):
-        try:
-            return self.first(predicate)
-        except StopIteration:
-            return default
+        perform_filtering()(self, predicate)
+        return next(self, default)
 
     def take(self, amount: int):
         self._data = itertools.islice(self, amount)

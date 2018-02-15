@@ -30,7 +30,7 @@ class SolverTests(unittest.TestCase):
                 [16, 5], [34, 5], [35, 5], [21, 6], [22, 6], [38, 6],
                 [39, 6], [28, 7], [29, 7], [41, 7], [42, 7],
                 *(Iterable(range(36, 45))
-                    .map(lambda number: [number, 8])),
+                  .map(lambda number: [number, 8])),
                 [45, 9]]
 
     @assert_equality(lambda left, right:

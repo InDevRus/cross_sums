@@ -26,7 +26,7 @@ def _(item) -> str:
 def convert_puzzle(puzzle: dict):
     def yield_strings():
         maximum_length = (Iterable(puzzle.values())
-                          .map(lambda value: len(convert_to_token(value)))
+                          .map(convert_to_token, len)
                           .max())
 
         converted = ''

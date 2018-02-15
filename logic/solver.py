@@ -34,14 +34,14 @@ def get_block(puzzle: dict, hint: tuple, horizontal: bool) -> (int, list):
 
     while True:
         current[horizontal] += 1
-        current_value = puzzle.get(Iterable(current).to_tuple())
+        current_value = puzzle.get(tuple(current))
         if current_value is None or isinstance(current_value, tuple):
             break
         if isinstance(current_value, int):
             hint_sum -= current_value
             restricted.append(current_value)
         if isinstance(current_value, set):
-            block.append(Iterable(current).to_tuple())
+            block.append(tuple(current))
 
     return hint_sum, block, frozenset(restricted)
 
@@ -85,10 +85,10 @@ def get_neighbor_cells(puzzle: dict, cell: tuple):
     def update_current():
         nonlocal current
         offset = (Iterable(direction)
-                  .to_tuple(lambda number: number * multiplier))
+                  .map(lambda number: number * multiplier))
         current = (Iterable(offset)
                    .zip(cell)
-                   .to_tuple(lambda iterable: Iterable(iterable).sum()))
+                   .to_tuple(lambda iterable: sum(iterable)))
 
     directions = (Iterable((-1, 1))
                   .chain(lambda number: ((0, number), (number, 0))))
@@ -97,7 +97,7 @@ def get_neighbor_cells(puzzle: dict, cell: tuple):
         current = None
         update_current()
         value = puzzle.get(current)
-        while isinstance(value, int) or (isinstance(value, set)):
+        while isinstance(value, (int, set)):
             if isinstance(value, set):
                 yield current
             multiplier += 1
@@ -108,7 +108,7 @@ def get_neighbor_cells(puzzle: dict, cell: tuple):
 def reduce_puzzle(puzzle: dict) -> dict:
     def is_cell_solved(cell: tuple):
         value = puzzle.get(cell)
-        return isinstance(value, set) and (Iterable(value).count()) == 1
+        return isinstance(value, set) and len(value) == 1
 
     was_reduce = True
     while was_reduce:
@@ -138,9 +138,10 @@ def exclude_impossible_numbers(puzzle: dict) -> dict:
     was_reduce = True
     while was_reduce:
         was_reduce = False
-        for free_cell in (Iterable(puzzle)
-                          .filter(lambda cell:
-                                  isinstance(puzzle.get(cell), set))):
+        free_cells = (Iterable(puzzle)
+                      .filter(lambda cell:
+                              isinstance(puzzle.get(cell), set)))
+        for free_cell in free_cells:
             for possible_number in puzzle.get(free_cell):
                 new_puzzle = puzzle.copy()
                 new_puzzle[free_cell] = {possible_number}
@@ -180,10 +181,9 @@ def yield_all_possible_solutions(puzzle: dict):
     # noinspection PyShadowingNames
     def generator(puzzle: dict):
         nonlocal found_solution
-        first_unsolved_cell = (Iterable(puzzle)
-                               .first_or_default(lambda cell:
-                                                 isinstance(puzzle.get(cell),
-                                                            set)))
+        first_unsolved_cell = (
+            Iterable(puzzle)
+            .first_or_default(lambda cell: isinstance(puzzle.get(cell), set)))
         if first_unsolved_cell is None:
             if is_solution_valid(puzzle):
                 found_solution = True
