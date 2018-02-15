@@ -1,10 +1,7 @@
 # noinspection PyUnresolvedReferences
 import pathmagic
 import sys
-from PyQt5.QtWidgets import (QMainWindow, QFileDialog, QMessageBox, QWidget,
-                             QApplication, QStatusBar, QAction, QLabel)
-from PyQt5.QtGui import (QPainter, QFont)
-from PyQt5.QtCore import (Qt, QPoint, QRect, QSize, QThread, pyqtSignal)
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 from logic.puzzle_maker import make_puzzle
 from logic.error_checker import check_puzzle
@@ -13,9 +10,9 @@ from utilities.iterable import Iterable
 from functools import wraps
 
 
-class SolveThread(QThread):
-    completion_signal = pyqtSignal(dict, int, int)
-    failure_signal = pyqtSignal(str)
+class SolveThread(QtCore.QThread):
+    completion_signal = QtCore.pyqtSignal(dict, int, int)
+    failure_signal = QtCore.pyqtSignal(str)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -30,7 +27,7 @@ class SolveThread(QThread):
             self.failure_signal.emit(str(exception))
 
 
-class CrossSumsWindow(QMainWindow):
+class CrossSumsWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -57,7 +54,7 @@ class CrossSumsWindow(QMainWindow):
 
         self.setAutoFillBackground(True)
         palette = self.palette()
-        palette.setColor(self.backgroundRole(), Qt.white)
+        palette.setColor(self.backgroundRole(), QtCore.Qt.white)
         self.setPalette(palette)
 
         self.paint_widget = PaintWidget(self, self._puzzle)
@@ -65,10 +62,10 @@ class CrossSumsWindow(QMainWindow):
         self.paint_widget.resize(self.width(), self.height())
 
     def initialize_status_bar(self):
-        status_bar = QStatusBar(self)
+        status_bar = QtWidgets.QStatusBar(self)
         self.setStatusBar(status_bar)
 
-        self._status_label = QLabel()
+        self._status_label = QtWidgets.QLabel()
         status_bar.addPermanentWidget(self._status_label)
 
     # noinspection PyUnresolvedReferences
@@ -78,15 +75,15 @@ class CrossSumsWindow(QMainWindow):
 
         file_menu = menu.addMenu('File')
 
-        loader = QAction('Load puzzle', self)
+        loader = QtWidgets.QAction('Load puzzle', self)
         loader.triggered.connect(self.load_puzzle_dialog)
         loader.setShortcut('Ctrl+O')
         self._load_puzzle_button = loader
 
-        exit_button = QAction('Exit', self)
+        exit_button = QtWidgets.QAction('Exit', self)
         exit_button.triggered.connect(self.close)
 
-        next_solution_button = QAction('Next solution', self)
+        next_solution_button = QtWidgets.QAction('Next solution', self)
         next_solution_button.setShortcut('Ctrl+N')
         next_solution_button.triggered.connect(self.yield_next_solution)
         next_solution_button.setEnabled(False)
@@ -97,7 +94,7 @@ class CrossSumsWindow(QMainWindow):
         file_menu.addAction(exit_button)
 
     def load_puzzle_dialog(self):
-        dialog = QFileDialog(self)
+        dialog = QtWidgets.QFileDialog(self)
         options = dialog.Options()
         options |= dialog.DontUseNativeDialog
         file_name = (dialog.getOpenFileName
@@ -177,8 +174,8 @@ class CrossSumsWindow(QMainWindow):
         self.unlock_actions()
 
     def yell_message(self, message: str):
-        error_message = QMessageBox(self)
-        error_message.setIcon(QMessageBox.Critical)
+        error_message = QtWidgets.QMessageBox(self)
+        error_message.setIcon(QtWidgets.QMessageBox.Critical)
         error_message.setText(message)
         error_message.setWindowTitle('Failure')
         error_message.show()
@@ -191,7 +188,8 @@ class CrossSumsWindow(QMainWindow):
                                   .max()
                                   for dimension in range(2))
                          .to_tuple(lambda number: number + 1))
-        self.setFixedSize(QSize(height * 50 + 1, width * 50 + 2 + 20 + 20))
+        self.setFixedSize(QtCore.QSize(height * 50 + 1,
+                                       width * 50 + 2 + 20 + 20))
         self.paint_widget.resize(self.width(), self.height())
 
         message = 'Solution # {0}, total: {1}.'
@@ -215,37 +213,37 @@ def draw(pen_color, brush_color):
     return decorator
 
 
-class PaintWidget(QWidget):
+class PaintWidget(QtWidgets.QWidget):
     def __init__(self, parent, puzzle: dict = None, *args, **kwargs):
         super().__init__(parent=parent, *args, **kwargs)
         self.puzzle = puzzle
         self.painter = None
 
-    @draw(Qt.transparent, Qt.black)
-    def fill_hint(self, point: QPoint, horizontal: bool):
+    @draw(QtCore.Qt.transparent, QtCore.Qt.black)
+    def fill_hint(self, point: QtCore.QPoint, horizontal: bool):
         return (Iterable(((0, 0), (1, 1), (horizontal, not horizontal)))
-                .map(lambda pair: QPoint(*pair))
+                .map(lambda pair: QtCore.QPoint(*pair))
                 .map(lambda addition: point + addition)
                 .map(lambda result: result * 50))
 
-    @draw(Qt.black, Qt.transparent)
-    def lead_round_square(self, point: QPoint):
+    @draw(QtCore.Qt.black, QtCore.Qt.transparent)
+    def lead_round_square(self, point: QtCore.QPoint):
         return (Iterable(((0, 0), (0, 1), (1, 1), (1, 0)))
-                .map(lambda pair: QPoint(*pair))
+                .map(lambda pair: QtCore.QPoint(*pair))
                 .map(lambda addition: point + addition)
                 .map(lambda result: result * 50))
 
-    @draw(Qt.black, Qt.transparent)
-    def draw_diagonal(self, point: QPoint):
+    @draw(QtCore.Qt.black, QtCore.Qt.transparent)
+    def draw_diagonal(self, point: QtCore.QPoint):
         return (Iterable(((0, 0), (1, 1)))
-                .map(lambda pair: QPoint(*pair))
+                .map(lambda pair: QtCore.QPoint(*pair))
                 .map(lambda addition: point + addition)
                 .map(lambda result: result * 50))
 
-    def draw_text(self, rectangle: QRect, alignment, text: str):
+    def draw_text(self, rectangle: QtCore.QRect, alignment, text: str):
         painter = self.painter
-        painter.setPen(Qt.black)
-        painter.setBrush(Qt.transparent)
+        painter.setPen(QtCore.Qt.black)
+        painter.setBrush(QtCore.Qt.transparent)
 
         painter.drawText(rectangle, alignment, text)
 
@@ -255,23 +253,29 @@ class PaintWidget(QWidget):
 
         if token is None:
             (Iterable(range(2))
-             .to_tuple(lambda bearings: self.fill_hint(QPoint(*transposed),
-                                                       bearings)))
+             .to_tuple(lambda bearings:
+                       self.fill_hint(QtCore.QPoint(*transposed),
+                                      bearings)))
         elif isinstance(token, int):
-            self.draw_text(QRect(QPoint(*transposed) * 50,
-                                 QSize(50, 50)),
-                           Qt.AlignCenter | Qt.AlignVCenter, str(token))
+            self.draw_text(QtCore.QRect(QtCore.QPoint(*transposed) * 50,
+                                        QtCore.QSize(50, 50)),
+                           QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter,
+                           str(token))
         elif isinstance(token, tuple):
             for orientation in range(2):
                 component = token[orientation]
-                self.draw_diagonal(QPoint(*transposed))
+                self.draw_diagonal(QtCore.QPoint(*transposed))
                 if component is None:
-                    self.fill_hint(QPoint(*transposed), bool(orientation))
+                    self.fill_hint(QtCore.QPoint(*transposed),
+                                   bool(orientation))
                 else:
                     (self.draw_text
-                     (QRect(QPoint(*transposed) * 50, QSize(50, 50)),
-                      Qt.AlignLeft | Qt.AlignBottom if not orientation
-                      else Qt.AlignRight | Qt.AlignTop, str(component)))
+                     (QtCore.QRect(QtCore.QPoint(*transposed) * 50,
+                                   QtCore.QSize(50, 50)),
+                      QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom
+                      if not orientation
+                      else QtCore.Qt.AlignRight | QtCore.Qt.AlignTop,
+                      str(component)))
         elif isinstance(token, set):
             pass
 
@@ -279,20 +283,20 @@ class PaintWidget(QWidget):
         if self.puzzle is None:
             return
 
-        self.painter = QPainter()
+        self.painter = QtGui.QPainter()
         self.painter.begin(self)
         painter = self.painter
 
-        painter.setFont(QFont('Consolas', 12))
+        painter.setFont(QtGui.QFont('Consolas', 12))
 
         for key in self.puzzle:
-            self.lead_round_square(QPoint(*reversed(key)))
+            self.lead_round_square(QtCore.QPoint(*reversed(key)))
             self.draw_token(key)
 
         painter.end()
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     window = CrossSumsWindow()
     sys.exit(app.exec_())
