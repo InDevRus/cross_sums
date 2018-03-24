@@ -5,12 +5,13 @@ Project can solve cross sums puzzle (also known as "Kakuro").
 ### How to use it?
 
 ```
-py cross_sums [-h] [-f FILE] [-l n]
+py cross_sums [-h] [-v] [-f FILE] [-l n]
 
 Cross sums (also known as "Kakuro") puzzle solver.
 
 optional arguments:
   -h, --help            show this help message and exit
+  -v, --visual          launch visual interface
   -f FILE, --file FILE  file with cross sums puzzle
   -l n, --limit n       limit of possible solutions (integer or asterisk)
 
@@ -70,12 +71,12 @@ Output will be dispatched in the same style.
 Graphic interface can be simply ran this way.
 
 ```
-py cross_sums/visual
+py cross_sums -v
 ```
 
 ### Tests
 
 Tests can be simply launched via
 ```
-pytest
+python -m unittest
 ```

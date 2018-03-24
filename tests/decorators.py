@@ -1,6 +1,6 @@
 import unittest
-from io import StringIO
 from functools import wraps
+from io import StringIO
 
 from utilities.iterable import Iterable
 

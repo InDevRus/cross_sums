@@ -1,11 +1,8 @@
-# noinspection PyUnresolvedReferences
-import pathmagic
-from tests.test_decorators import *
-
 from logic import puzzle_maker
+from tests.decorators import *
 
 
-class PuzzleTests(unittest.TestCase):
+class PuzzleMakerTests(unittest.TestCase):
     @assert_equality(puzzle_maker.make_puzzle)
     @wrap_string_in_io()
     def test_puzzle_making(self):

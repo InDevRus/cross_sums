@@ -1,9 +1,6 @@
-# noinspection PyUnresolvedReferences
-import pathmagic
-from tests.test_decorators import *
-
 from logic import solver
 from logic.puzzle_maker import make_puzzle
+from tests.decorators import *
 
 
 class SolverTests(unittest.TestCase):

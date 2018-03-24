@@ -1,13 +1,14 @@
-# noinspection PyUnresolvedReferences
-import pathmagic
 import sys
+from functools import wraps
+
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from logic.puzzle_maker import make_puzzle
 from logic.error_checker import check_puzzle
+from logic.puzzle_maker import make_puzzle
 from logic.solver import solve_puzzle
 from utilities.iterable import Iterable
-from functools import wraps
+
+draw_scale = 35
 
 
 class SolveThread(QtCore.QThread):
@@ -188,8 +189,8 @@ class CrossSumsWindow(QtWidgets.QMainWindow):
                                   .max()
                                   for dimension in range(2))
                          .to_tuple(lambda number: number + 1))
-        self.setFixedSize(QtCore.QSize(height * 50 + 1,
-                                       width * 50 + 2 + 20 + 20))
+        self.setFixedSize(QtCore.QSize(height * draw_scale + 1,
+                                       width * draw_scale + 2 + 20 + 20))
         self.paint_widget.resize(self.width(), self.height())
 
         message = 'Solution # {0}, total: {1}.'
@@ -224,21 +225,21 @@ class PaintWidget(QtWidgets.QWidget):
         return (Iterable(((0, 0), (1, 1), (horizontal, not horizontal)))
                 .map(lambda pair: QtCore.QPoint(*pair))
                 .map(lambda addition: point + addition)
-                .map(lambda result: result * 50))
+                .map(lambda result: result * draw_scale))
 
     @draw(QtCore.Qt.black, QtCore.Qt.transparent)
     def lead_round_square(self, point: QtCore.QPoint):
         return (Iterable(((0, 0), (0, 1), (1, 1), (1, 0)))
                 .map(lambda pair: QtCore.QPoint(*pair))
                 .map(lambda addition: point + addition)
-                .map(lambda result: result * 50))
+                .map(lambda result: result * draw_scale))
 
     @draw(QtCore.Qt.black, QtCore.Qt.transparent)
     def draw_diagonal(self, point: QtCore.QPoint):
         return (Iterable(((0, 0), (1, 1)))
                 .map(lambda pair: QtCore.QPoint(*pair))
                 .map(lambda addition: point + addition)
-                .map(lambda result: result * 50))
+                .map(lambda result: result * draw_scale))
 
     def draw_text(self, rectangle: QtCore.QRect, alignment, text: str):
         painter = self.painter
@@ -257,10 +258,10 @@ class PaintWidget(QtWidgets.QWidget):
                        self.fill_hint(QtCore.QPoint(*transposed),
                                       bearings)))
         elif isinstance(token, int):
-            self.draw_text(QtCore.QRect(QtCore.QPoint(*transposed) * 50,
-                                        QtCore.QSize(50, 50)),
-                           QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter,
-                           str(token))
+            self.draw_text(
+                QtCore.QRect(QtCore.QPoint(*transposed) * draw_scale,
+                             QtCore.QSize(draw_scale, draw_scale)),
+                QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter, str(token))
         elif isinstance(token, tuple):
             for orientation in range(2):
                 component = token[orientation]
@@ -270,8 +271,8 @@ class PaintWidget(QtWidgets.QWidget):
                                    bool(orientation))
                 else:
                     (self.draw_text
-                     (QtCore.QRect(QtCore.QPoint(*transposed) * 50,
-                                   QtCore.QSize(50, 50)),
+                     (QtCore.QRect(QtCore.QPoint(*transposed) * draw_scale,
+                                   QtCore.QSize(draw_scale, draw_scale)),
                       QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom
                       if not orientation
                       else QtCore.Qt.AlignRight | QtCore.Qt.AlignTop,
@@ -296,7 +297,7 @@ class PaintWidget(QtWidgets.QWidget):
         painter.end()
 
 
-if __name__ == '__main__':
+def main():
     app = QtWidgets.QApplication(sys.argv)
-    window = CrossSumsWindow()
+    _ = CrossSumsWindow()
     sys.exit(app.exec_())
